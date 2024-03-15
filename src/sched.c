@@ -1,9 +1,13 @@
 #include "sched.h"
 #include<unistd.h>
+#include <pthread.h>
 
 struct scheduler{
-    int nthreads;
-    int qlen;
+    int nthreads;          // Nombre de threads
+    int qlen;              // Nombre maximum de tâches simultanées
+    pthread_t *threads;    // Tableau des threads
+    int stack_size;        // Taille actuelle de la pile
+    taskfunc *stack;       // Pile de tâches
 };
 
 
