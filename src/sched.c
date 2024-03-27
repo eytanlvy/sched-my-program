@@ -12,7 +12,7 @@ struct scheduler{
 
 
 int sched_init(int nthreads, int qlen, taskfunc f, void *closure){ //créé un ordonnanceur.
-    if(nthreads == 0){
+    if(nthreads <= 0){
         nthreads = sched_default_threads(); 
     }
     return 1;
