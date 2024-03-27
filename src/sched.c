@@ -18,26 +18,22 @@ typedef struct scheduler{
 } scheduler;
 
 int sched_init(int nthreads, int qlen, taskfunc f, void *closure){//creates a scheduler
-    if(nthreads < 0){
-        write(2,"[!] Error : wrong parameter in sched_init, nthreads must be >= 0\n",65);
-        return -1;
-    }
     if(qlen <= 0){
         write(2,"[!] Error : wrong parameter in sched_init, qlen must be > 0\n",60);
         return -1;
     }
-    if(!nthreads){
-        nthreads = sched_default_threads(); 
-    }
     if (!f) {
-        write(2,"[!] Error : wrong parameter in sched_init, taskfunc must be != NULL\n",70);
+        write(2,"[!] Error : wrong parameter in sched_init, taskfunc must be != NULL\n",69);
         return -1;
+    }
+    if(nthreads <= 0){
+        nthreads = sched_default_threads();
     }
 
     //Scheduler creation
     scheduler *s = mmap(NULL, sizeof(scheduler), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
     if(s == MAP_FAILED){
-        write(2,"[!] Error : mmap failed in sched_init\n",38);
+        perror("[!] Error : mmap failed in sched_init : ");
         return -1;
     }
     s->nthreads = nthreads;
@@ -46,7 +42,7 @@ int sched_init(int nthreads, int qlen, taskfunc f, void *closure){//creates a sc
     //Creation des threads
     s->threads = mmap(NULL, nthreads*sizeof(pthread_t), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
     if(s->threads == MAP_FAILED){
-        write(2,"[!] Error : mmap failed in sched_init\n",38);
+        perror("[!] Error : mmap failed in sched_init : ");
         munmap(s, sizeof(scheduler));
         return -1;
     }
@@ -55,7 +51,7 @@ int sched_init(int nthreads, int qlen, taskfunc f, void *closure){//creates a sc
     s->stack_size = 0;
     s->stack = mmap(NULL, qlen*sizeof(task), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
     if (s->stack == MAP_FAILED) {
-        write(2,"[!] Error : mmap failed in sched_init\n",38);
+        perror("[!] Error : mmap failed in sched_init : ");
         munmap(s->threads, nthreads*sizeof(pthread_t));
         munmap(s, sizeof(scheduler));
         return -1;
@@ -64,7 +60,7 @@ int sched_init(int nthreads, int qlen, taskfunc f, void *closure){//creates a sc
     // Threads creation
     for (int i = 0; i < nthreads; i++) {
         if (pthread_create(&s->threads[i], NULL, worker_thread, s) != 0) {
-            write(2,"[!] Error : pthread_create failed in sched_init\n",48);
+            perror("[!] Error : pthread_create failed in sched_init : ");
             for (int j = 0; j < i; j++) {
                 pthread_cancel(s->threads[j]);
             }
@@ -87,7 +83,7 @@ int sched_spawn(taskfunc f, void *closure, struct scheduler *s){
     }
     task *newTask = mmap(NULL, sizeof(task), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
     if((void *) newTask == MAP_FAILED){
-        perror("[!] Error mmap failed :");
+        perror("[!] Error mmap failed :" );
         return -1;
     }
     newTask->function = f;
