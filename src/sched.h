@@ -1,3 +1,5 @@
+#include <unistd.h>
+
 struct scheduler;
 
 typedef void (*taskfunc)(void*, struct scheduler *);
@@ -10,3 +12,4 @@ sched_default_threads()
 
 int sched_init(int nthreads, int qlen, taskfunc f, void *closure);
 int sched_spawn(taskfunc f, void *closure, struct scheduler *s);
+void *worker_thread(void *arg);
